@@ -1,0 +1,145 @@
+﻿@{
+    ViewData["Title"] = "Home Page";
+}
+
+<div class="text-center">
+    <h1 class="display-4">Reddit Status Tracker</h1>
+</div>
+<div class="text-center">
+    <button id="startButton" class="btn btn-primary" onclick="startClicked()" >Start</button>
+    <button id="endButton" class="btn btn-danger" onclick="endClicked()" disabled>End</button>
+    <button id="resetButton" class="btn btn-secondary" onclick="resetClicked()" disabled>Reset</button>
+</div>
+
+<div id="dataSection" class="mt-5">
+    <h2 class="text-center">Data</h2>
+    <div class="row">
+        <div class="col-md-6">
+            <h3 class="text-center">Most Upvoted Post URL</h3>
+            <p id="url" class="text-center">No Data</p>
+        </div>
+        <div class="col-md-6">
+            <h3 class="text-center">Upvote Count</h3>
+            <p id="upvoteCount" class="text-center">No Data</p>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-6">
+            <h3 class="text-center">Most Active User</h3>
+            <p id="user" class="text-center">No Data</p>
+        </div>
+        <div class="col-md-6">
+            <h3 class="text-center">No of posts</h3>
+            <p id="postCount" class="text-center">No Data</p>
+        </div>
+    </div>
+
+    <div class="row mt-3">
+        <div class="col-md-6">
+            <p class="text-center">Start Time: <span id="startTime">Not Started</span></p>
+        </div>
+        <div class="col-md-6">
+            <p class="text-center">End Time: <span id="endTime">Not Ended</span></p>
+        </div>
+    </div>
+</div>
+
+
+<script>
+    let startTime = null;
+    let endTime = null;
+    let intervalId = null;
+
+    function startClicked() {
+        startTime = new Date();
+        document.getElementById("startButton").disabled = true;
+        document.getElementById("endButton").disabled = false;
+        document.getElementById("resetButton").disabled = true;
+        document.getElementById("startTime").innerText = startTime.toLocaleString();
+        fetchData();
+
+        // Start the interval to fetch data every minute
+        intervalId = setInterval(() => {
+            fetchData();
+        }, 60000); // 60000 milliseconds = 1 minute
+    }
+
+    function endClicked() {
+        endTime = new Date();
+        document.getElementById("endButton").disabled = true;
+        document.getElementById("startButton").disabled = false;
+        document.getElementById("resetButton").disabled = false;
+        document.getElementById("endTime").innerText = endTime.toLocaleString();
+        fetchData();
+        // Clear the interval
+        clearInterval(intervalId);
+    }
+
+    function resetClicked() {
+        startTime = null;
+        endTime = null;
+        document.getElementById("startTime").innerText = "Not Started";
+        document.getElementById("endTime").innerText = "Not Ended";
+        document.getElementById("url").innerText = "No Data";
+        document.getElementById("upvoteCount").innerText = "No Data";
+        document.getElementById("user").innerText = "No Data";
+        document.getElementById("postCount").innerText = "No Data";
+        document.getElementById("startButton").disabled = false;
+        document.getElementById("resetButton").disabled = true;
+
+        // Clear the interval if it's running
+        clearInterval(intervalId);
+    }
+    
+
+        function fetchData() {
+
+            const formattedStartTime = startTime.toISOString();
+            console.log("formattedStartTime", formattedStartTime);
+            $.ajax({
+            url: '@Url.Action("FetchDataAsync1")',
+            dataType: "json",
+            type: "POST",
+            contentType: 'application/json; charset=utf-8',
+            cache: false,
+            data: { startTime: formattedStartTime },
+            success: function (data) {
+                if (data.success) {
+                    alert(data.message);
+                            console.log('Data received:', data);
+                            const { MostUpvotedPostUrl, MostUpvotedPostUpvotes, MostActiveUser, MostActiveUserPostCount } = data;
+                            document.getElementById("url").innerText = MostUpvotedPostUrl || "No Data";
+                            document.getElementById("upvoteCount").innerText = MostUpvotedPostUpvotes || "No Data";
+                            document.getElementById("user").innerText = MostActiveUser || "No Data";
+                            document.getElementById("postCount").innerText = MostActiveUserPostCount || "No Data";
+                }
+            },
+            error: function (xhr) {
+                alert('error');
+            }
+        });
+            
+        }
+        // const formattedStartTime = startTime.toISOString();
+
+        // fetch(`/Home/FetchDataAsync?startTime=${formattedStartTime}`)
+        //     .then(response => {
+        //         console.log('Response status:', response.status);
+        //         return response.json();
+        //     })
+        //     .then(data => {
+        //         console.log('Data received:', data);
+        //         const { MostUpvotedPostUrl, MostUpvotedPostUpvotes, MostActiveUser, MostActiveUserPostCount } = data;
+        //         document.getElementById("url").innerText = MostUpvotedPostUrl || "No Data";
+        //         document.getElementById("upvoteCount").innerText = MostUpvotedPostUpvotes || "No Data";
+        //         document.getElementById("user").innerText = MostActiveUser || "No Data";
+        //         document.getElementById("postCount").innerText = MostActiveUserPostCount || "No Data";
+        //     })
+        //     .catch(error => {
+        //         console.error('Error fetching data:', error);
+        //     });
+    
+
+
+
+</script>
