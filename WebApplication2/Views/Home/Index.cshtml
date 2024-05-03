@@ -6,7 +6,7 @@
     <h1 class="display-4">Reddit Status Tracker</h1>
 </div>
 <div class="text-center">
-    <button id="startButton" class="btn btn-primary" onclick="startClicked()" >Start</button>
+    <button id="startButton" class="btn btn-primary" onclick="startClicked()">Start</button>
     <button id="endButton" class="btn btn-danger" onclick="endClicked()" disabled>End</button>
     <button id="resetButton" class="btn btn-secondary" onclick="resetClicked()" disabled>Reset</button>
 </div>
@@ -16,8 +16,9 @@
     <div class="row">
         <div class="col-md-6">
             <h3 class="text-center">Most Upvoted Post URL</h3>
-            <p id="url" class="text-center">No Data</p>
+            <a id="urlLink" href="" target="_blank"><p id="url" class="text-center">No Data</p></a>
         </div>
+
         <div class="col-md-6">
             <h3 class="text-center">Upvote Count</h3>
             <p id="upvoteCount" class="text-center">No Data</p>
@@ -58,10 +59,10 @@
         document.getElementById("startTime").innerText = startTime.toLocaleString();
         fetchData();
 
-        // Start the interval to fetch data every minute
+        //Start the interval to fetch data every minute
         intervalId = setInterval(() => {
             fetchData();
-        }, 60000); // 60000 milliseconds = 1 minute
+        }, 10000); // 10000 milliseconds = 10 Seconds
     }
 
     function endClicked() {
@@ -70,8 +71,8 @@
         document.getElementById("startButton").disabled = false;
         document.getElementById("resetButton").disabled = false;
         document.getElementById("endTime").innerText = endTime.toLocaleString();
+
         fetchData();
-        // Clear the interval
         clearInterval(intervalId);
     }
 
@@ -86,60 +87,45 @@
         document.getElementById("postCount").innerText = "No Data";
         document.getElementById("startButton").disabled = false;
         document.getElementById("resetButton").disabled = true;
-
-        // Clear the interval if it's running
+        document.getElementById("urlLink").href = "";
         clearInterval(intervalId);
     }
-    
 
-        function fetchData() {
 
-            const formattedStartTime = startTime.toISOString();
-            console.log("formattedStartTime", formattedStartTime);
-            $.ajax({
-            url: '@Url.Action("FetchDataAsync1")',
-            dataType: "json",
-            type: "POST",
-            contentType: 'application/json; charset=utf-8',
-            cache: false,
-            data: { startTime: formattedStartTime },
-            success: function (data) {
-                if (data.success) {
-                    alert(data.message);
-                            console.log('Data received:', data);
-                            const { MostUpvotedPostUrl, MostUpvotedPostUpvotes, MostActiveUser, MostActiveUserPostCount } = data;
-                            document.getElementById("url").innerText = MostUpvotedPostUrl || "No Data";
-                            document.getElementById("upvoteCount").innerText = MostUpvotedPostUpvotes || "No Data";
-                            document.getElementById("user").innerText = MostActiveUser || "No Data";
-                            document.getElementById("postCount").innerText = MostActiveUserPostCount || "No Data";
+    function fetchData() {
+        const formattedStartTime = startTime.toISOString();
+        //console.log("formattedStartTime", formattedStartTime);
+
+        $.ajax(
+            {
+                url: '@Url.Action("FetchDataAsync1")',
+                dataType: "json",
+                type: "POST",
+                contentType: 'application/json; charset=utf-16',
+                cache: false,
+                data: JSON.stringify({ Time: formattedStartTime }),
+                success: function (data) {
+                    console.log('Data received:', data);
+                    const MostUpvotedPostUrl = data.mostUpvotedPostUrl;
+                    const MostUpvotedPostUpvotes = data.mostUpvotedPostUpvotes;
+                    const MostActiveUser = data.mostActiveUser;
+                    const MostActiveUserPostCount = data.mostActiveUserPostCount;
+
+                    document.getElementById("url").innerText = MostUpvotedPostUrl;
+                    document.getElementById("upvoteCount").innerText = MostUpvotedPostUpvotes;
+                    document.getElementById("user").innerText = MostActiveUser;
+                    document.getElementById("postCount").innerText = MostActiveUserPostCount;
+                    document.getElementById("urlLink").href = MostUpvotedPostUrl;
+
+                    // if(document.getElementById("startButton").disabled){
+                    //    console.log("fetchdatacalled");
+                    //    fetchData();
+                    // }
+
+                },
+                error: function (xhr) {
+                    console.log('error');
                 }
-            },
-            error: function (xhr) {
-                alert('error');
-            }
-        });
-            
-        }
-        // const formattedStartTime = startTime.toISOString();
-
-        // fetch(`/Home/FetchDataAsync?startTime=${formattedStartTime}`)
-        //     .then(response => {
-        //         console.log('Response status:', response.status);
-        //         return response.json();
-        //     })
-        //     .then(data => {
-        //         console.log('Data received:', data);
-        //         const { MostUpvotedPostUrl, MostUpvotedPostUpvotes, MostActiveUser, MostActiveUserPostCount } = data;
-        //         document.getElementById("url").innerText = MostUpvotedPostUrl || "No Data";
-        //         document.getElementById("upvoteCount").innerText = MostUpvotedPostUpvotes || "No Data";
-        //         document.getElementById("user").innerText = MostActiveUser || "No Data";
-        //         document.getElementById("postCount").innerText = MostActiveUserPostCount || "No Data";
-        //     })
-        //     .catch(error => {
-        //         console.error('Error fetching data:', error);
-        //     });
-    
-
-
-
+            });
+    }
 </script>
